@@ -1913,7 +1913,12 @@ Return candidates prefixed with basename of `helm-input' first."
               ;; A file.
               ((and attr (null type))
                (cons (helm-ff-prefix-filename
-                      (propertize disp 'face 'helm-ff-file) t)
+                      (propertize disp 'face
+                                  (helm-aif (cl-find-if
+                                             (lambda (x) (string-match-p (caddr x) disp))
+                                             dired-rainbow-ext-to-face)
+                                      (cadr it)
+                                    'helm-ff-file)) t)
                      file))
               ;; A non--existing file.
               (t
