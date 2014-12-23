@@ -377,11 +377,7 @@ Should be called after others transformers i.e (boring buffers)."
       (helm-force-update preselect))))
 
 (defun helm-buffers-sort-transformer (candidates _source)
-  (if (string= helm-pattern "")
-      candidates
-    (sort candidates
-          #'(lambda (s1 s2)
-              (< (string-width s1) (string-width s2))))))
+  candidates)
 
 (defun helm-buffers-mark-similar-buffers-1 ()
   (with-helm-window
@@ -494,7 +490,7 @@ with name matching pattern."
                  (helm-buffer--match-mjm (car split) mjm))
                 ;; Match on dir of buffer-file-name and multiple patterns.
                 ((and (string-match "\\`/" helm-pattern) buf-fname (cdr split))
-                 ;; Exact match for this is better to match end of dir [1]. 
+                 ;; Exact match for this is better to match end of dir [1].
                  (and (string-match
                        (substring (car split) 1) (helm-basedir buf-fname))
                       (cl-loop for i in (cdr split) always
