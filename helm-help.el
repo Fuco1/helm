@@ -232,7 +232,7 @@ of buffer, it is interesting to narrow down to one directory for example, subseq
 entered after a space will match on buffer-name only.
 Note that negation is not supported for matching on buffer-file-name.
 You can't cumulate both major-mode matching AND directory matching, choose one or the other.
- 
+
 **** Fuzzy matching:
 
 Note that if `helm-buffers-fuzzy-matching' is non--nil you will have
@@ -357,7 +357,24 @@ Italic     => A non--file buffer.
 
 *** To create a new file just write the filename not ending with \"/\".
 
-*** You can start a recursive search with Locate of Find (See commands below).
+*** Recursive search from helm find files
+
+**** You can use helm browse project (see binding below).
+
+- With no prefix arg
+  If your current directory is under version control
+  with one of git or hg and you have installed helm-ls-git and/or helm-ls-hg
+  https://github.com/emacs-helm/helm-ls-git.git
+  https://github.com/emacs-helm/helm-ls-hg
+  you will see all your files under version control, otherwise
+  you will be back to helm-find-files.
+- With one prefix arg
+  You will see all the files under this directory
+  and other subdirectories (recursion) and this list of files will be cached.
+- With two prefix args
+  same but the cache will be refreshed.
+
+**** You can start a recursive search with Locate of Find (See commands below).
   With Locate you can use a local db with a prefix arg; If the localdb doesn't already
   exists, you will be prompted for its creation, if it exists and you want to refresh it,
   give two prefix args.
@@ -365,6 +382,7 @@ Italic     => A non--file buffer.
 \n** Specific commands for `helm-find-files':\n
 \\<helm-find-files-map>
 \\[helm-ff-run-locate]\t\t->Run Locate (C-u to specify locate db, M-n insert basename of candidate)
+\\[helm-ff-run-browse-project]\t\t->Browse project (`C-u' recurse, `C-u C-u' recurse and refresh db)
 \\[helm-ff-run-find-sh-command]\t\t->Run Find shell command from this directory.
 \\[helm-ff-run-grep]\t\t->Run Grep (C-u Recursive).
 \\[helm-ff-run-pdfgrep]\t\t->Run Pdfgrep on marked files.
@@ -495,14 +513,18 @@ C/\\[helm-cr-empty-string]\t\t->Maybe return empty string (unless `must-match').
 
 ** Helm generic file tips:\n
 
+*** Locate
 You can add after writing search pattern any of the locate command line options.
 e.g -b, -e, -n <number>...etc.
 See Man locate for more infos.
 
-*** Note:
-
 Some other sources (at the moment recentf and file in current directory sources)
 support the -b flag for compatibility with locate when they are used with it.
+
+*** Browse project
+
+When your directory is not under version control,
+don't forget to refresh your cache when files have been added/removed in your directory.
 
 \n** Specific commands for helm locate and others files sources:
 
@@ -520,6 +542,7 @@ support the -b flag for compatibility with locate when they are used with it.
 \\[helm-ff-run-open-file-externally]\t\t->Open file with external program (C-u to choose).
 \\[helm-ff-run-open-file-with-default-tool]\t\t->Open file externally with default tool.
 \\[helm-ff-run-insert-org-link]\t\t->Insert org link.
+\\[helm-generic-file-help]\t\t->Show this help.
 \n** Helm Map\n
 \\{helm-map}")
 
@@ -547,7 +570,7 @@ short delay (less than 5s actually) among other things,
 so I strongly advice hitting `C-!' (i.e suspend process)
 before entering anything in pattern, and hit again `C-!' when
 your regexp is ready to send to remote process, even if helm is handling
-this by delaying each process at 5s. 
+this by delaying each process at 5s.
 Or even better don't use tramp at all and mount your remote file system on SSHFS.
 
 \n** Specific commands for Helm Grep:\n
@@ -807,14 +830,24 @@ Multiple regexp matching is allowed, just enter a space to separate your regexps
   "\n* Helm elisp package\n
 \n** Helm elisp package tips:
 *** Upgrade elisp packages
-Upgrading is not yet implemented, but you can easily achieve this like this:
+Upgrading is not yet implemented, but you can easily achieve this task like this:
 
 1) Show only installed packages
    You should see two versions of package(s) if a new version
    is available.
-2) Delete the installed version
-3) Run `helm-resume'
-4) Install the new version
+2) Delete the installed package(s) version (Mark them and delete).
+3) Run `helm-resume' [1]
+4) Install the new package(s) version not already installed (Mark them and install).
+
+So if for example you have bound helm-resume to `f1', you can do:
+
+1) Mark the installed package(s) version and hit `f3'.
+2) Hit `f1'.[1]
+3) Mark the new package(s) version not already installed and hit `f2'.
+
+**** NOTE [1]: If you restart `helm-list-elisp-packages' instead of using `helm-resume'
+you will NOT see anymore the packages to install and you will have to retrieve them
+manually, which can be a pain if you have many.
 
 \n** Specific commands for Helm elisp package:\n
 \\<helm-el-package-map>

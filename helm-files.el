@@ -2544,7 +2544,7 @@ Else return ACTIONS unmodified."
                      :path 'full
                      :directories nil
                      :match match
-                     :skip-subdirs ignore-dirs) 
+                     :skip-subdirs ignore-dirs)
            do (file-cache-add-file f)))
 
 (defun helm-ff-cache-add-file (_candidate)
@@ -2585,8 +2585,7 @@ Else return ACTIONS unmodified."
     (candidates . file-name-history)
     (persistent-action . ignore)
     (filtered-candidate-transformer . helm-file-name-history-transformer)
-    (action . ,(cdr (helm-get-actions-from-type
-                     helm-source-locate)))))
+    (action . ,(helm-actions-from-type-file))))
 
 (defvar helm-source--ff-file-name-history nil
   "[Internal] This source is build to be used with `helm-find-files'.
@@ -2660,14 +2659,16 @@ Don't use it in your own code unless you know what you are doing.")
                                    helm-recentf--basename-flag)
                                (helm-basename candidate) candidate)))
    (filter-one-by-one :initform (lambda (c)
-                                  (if helm-ff-transformer-show-only-basename
-                                      (cons (helm-basename c) c) c)))
+                                  (if (and helm-ff-transformer-show-only-basename
+                                           (not (consp c)))
+                                      (cons (helm-basename c) c)
+                                      c)))
    (keymap :initform helm-generic-files-map)
    (help-message :initform helm-generic-file-help-message)
    (mode-line :initform helm-generic-file-mode-line-string)
    (action :initform (helm-actions-from-type-file))))
 
-(defvar helm-source-recentf nil 
+(defvar helm-source-recentf nil
   "See (info \"(emacs)File Conveniences\").
 Set `recentf-max-saved-items' to a bigger value if default is too small.")
 
@@ -2683,8 +2684,8 @@ Set `recentf-max-saved-items' to a bigger value if default is too small.")
 
 ;;; Browse project
 ;; Need dependencies:
-;; <https://github.com/emacs-helm/helm-ls-git.git>
-;; <https://github.com/emacs-helm/helm-mercurial-queue/blob/master/helm-ls-hg.el>
+;; <https://github.com/emacs-helm/helm-ls-git>
+;; <https://github.com/emacs-helm/helm-ls-hg>
 ;; Only hg and git are supported for now.
 (defvar helm--browse-project-cache (make-hash-table :test 'equal))
 (defun helm-browse-project-find-files (directory &optional refresh)
@@ -2696,6 +2697,10 @@ Set `recentf-max-saved-items' to a bigger value if default is too small.")
              helm--browse-project-cache))
   (helm :sources (helm-build-in-buffer-source "Browse project"
                    :data (gethash directory helm--browse-project-cache)
+                   :header-name (lambda (name)
+                                  (format
+                                   "%s (%s)"
+                                   name (abbreviate-file-name directory)))
                    :match-part (lambda (c)
                                  (if helm-ff-transformer-show-only-basename
                                      (helm-basename c) c))
@@ -2706,6 +2711,7 @@ Set `recentf-max-saved-items' to a bigger value if default is too small.")
                                            'face 'helm-ff-file)
                                c)
                        (propertize c 'face 'helm-ff-file)))
+                   :mode-line helm-generic-file-mode-line-string
                    :keymap helm-generic-files-map
                    :action (helm-actions-from-type-file))
         :buffer "*helm browse project*"))
@@ -2734,7 +2740,7 @@ and
               (helm-hg-root))
          (helm-hg-find-files-in-project))
         (t (let ((cur-dir (helm-current-directory)))
-             (if (or arg (gethash cur-dir helm--browse-project-cache)) 
+             (if (or arg (gethash cur-dir helm--browse-project-cache))
                  (helm-browse-project-find-files cur-dir (equal arg '(16)))
                (helm-find-files nil))))))
 
@@ -2765,8 +2771,7 @@ See `helm-browse-project'."
     (keymap . ,helm-generic-files-map)
     (help-message . helm-generic-file-help-message)
     (mode-line . helm-generic-file-mode-line-string)
-    (action . ,(cdr (helm-get-actions-from-type
-                     helm-source-locate))))
+    (action . ,(helm-actions-from-type-file)))
   "File list from emacs-session.")
 
 
@@ -2902,7 +2907,7 @@ utility mdfind.")
 
 (defun helm-findutils-transformer (candidates _source)
   (cl-loop for i in candidates
-           for type = (car (file-attributes i))    
+           for type = (car (file-attributes i))
         for abs = (expand-file-name i helm-default-directory)
         for disp = (if (and helm-ff-transformer-show-only-basename
                             (not (string-match "[.]\\{1,2\\}$" i)))

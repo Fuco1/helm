@@ -445,7 +445,7 @@
 
    (header-line
     :initarg :header-line
-    :initform 'helm-persistent-help-string
+    :initform nil
     :custom (choice string function)
     :documentation
     "  Source local `header-line-format'.
@@ -484,7 +484,7 @@
 
    (dont-plug
     :initarg :dont-plug
-    :initform nil
+    :initform '(helm-compile-source--persistent-help)
     :custom list
     :documentation
     "  A list of compile functions plugin to ignore.")
@@ -537,7 +537,8 @@
     :initform '("ERROR: You must specify the `candidates' slot, either with a list or a function"))
 
    (dont-plug
-    :initform '(helm-compile-source--match-plugin))
+    :initform '(helm-compile-source--match-plugin
+                helm-compile-source--persistent-help))
    
    (match-strict
     :initarg :match-strict
@@ -549,7 +550,14 @@
   functions will be concatened, which in some cases is not what
   is wanted. When using `match-strict' only this or these
   functions will be used. You can specify those functions as a
-  list of functions or a single symbol function.")))
+  list of functions or a single symbol function.
+
+  NOTE: This have the same effect as using :MATCHPLUGIN nil."))
+
+  "Use this class to make helm sources using a list of candidates.
+This list should be given as a normal list, a variable handling a list
+or a function returning a list.
+Matching is done basically with `string-match' against each candidate.")
 
 (defclass helm-source-async (helm-source)
   ((candidates-process
@@ -561,7 +569,11 @@
   an async process instead of `candidates'.
   The function must return a process.")
 
-   (matchplugin :initform nil)))
+   (matchplugin :initform nil))
+
+  "Use this class to define a helm source calling an external process.
+The :candidates slot is not allowed even if described because this class
+inherit from `helm-source'.")
 
 (defclass helm-source-in-buffer (helm-source)
   ((init
@@ -579,7 +591,8 @@
    
    (dont-plug
     :initform '(helm-compile-source--candidates-in-buffer
-                helm-compile-source--match-plugin))
+                helm-compile-source--match-plugin
+                helm-compile-source--persistent-help))
    
    (candidates
     :initform 'helm-candidates-in-buffer)
@@ -610,8 +623,13 @@
   Buffer search function used by `helm-candidates-in-buffer'.
   By default, `helm-candidates-in-buffer' uses `re-search-forward'.
   The function should take one arg PATTERN.
+  If your search function needs to handle negation like matchplugin,
+  this function should returns in such case a cons cell of two integers defining
+  the beg and end positions to match in the line previously matched by
+  `re-search-forward' or similar, and move point to next line
+  (See how the `helm-mp-3-search-base' and `helm-fuzzy-search' functions are working).
 
-  Note that FUZZY-MATCH slot wiil overhide value of this slot.")
+  NOTE: FUZZY-MATCH slot will overhide value of this slot.")
 
    (search-from-end
     :initarg :search-from-end
@@ -622,7 +640,7 @@
   If this attribute is specified, `helm-candidates-in-buffer'
   uses `re-search-backward' instead.
 
-  NOTE: This is here for compatibilty, but it is not used anymore.")
+  NOTE: This is here for compatibilty, but it is deprecated and not used anymore.")
 
    (search-strict
     :initarg :search-strict
@@ -634,7 +652,14 @@
   functions will be concatened, which in some cases is not what
   is wanted. When using `search-strict' only this or these
   functions will be used. You can specify those functions as a
-  list of functions or a single symbol function.")))
+  list of functions or a single symbol function.
+
+  NOTE: This have the same effect as using a nil value for
+        :MATCHPLUGIN slot."))
+
+  "Use this source to make helm sources storing candidates inside a buffer.
+Contrarily to `helm-source-sync' candidates are matched using a function
+like `re-search-forward', see below documentation of :search slot.")
 
 (defclass helm-source-dummy (helm-source)
   ((candidates
@@ -885,30 +910,51 @@ an eieio class."
 ;;; Methods to build sources.
 ;;
 ;;
+(defun helm-source--persistent-help-string (string source)
+  (substitute-command-keys
+   (concat "\\<helm-map>\\[helm-execute-persistent-action]: "
+           (or (format "%s (keeping session)" string)
+               (oref source :header-line)))))
+
+(defun helm-source--header-line (source)
+  (substitute-command-keys
+   (concat "\\<helm-map>\\[helm-execute-persistent-action]: "
+           (helm-aif (or (oref source :persistent-action)
+                         (oref source :action))
+               (cond ((symbolp it)
+                      (symbol-name it))
+                     ((listp it)
+                      (or (ignore-errors (caar it))  "")))
+             "")
+           " (keeping session)")))
+
 (defmethod helm--setup-source :before ((source helm-source))
   (helm-aif (slot-value source :keymap)
       (and (symbolp it) (set-slot-value source :keymap (symbol-value it))))
+  (oset source :header-line (helm-source--header-line source))
+  (helm-aif (slot-value source :persistent-help)
+      (oset source :header-line (helm-source--persistent-help-string it source)))
   (when (slot-value source :fuzzy-match)
     (oset source :nohighlight t)
-    (when helm-default-fuzzy-matching-highlight-fn
+    (when helm-fuzzy-matching-highlight-fn
       (oset source :filter-one-by-one
             (helm-aif (oref source :filter-one-by-one)
                 (append (helm-mklist it)
-                        (list helm-default-fuzzy-matching-highlight-fn))
-              (list helm-default-fuzzy-matching-highlight-fn))))
-    (when helm-default-fuzzy-sort-fn
+                        (list helm-fuzzy-matching-highlight-fn))
+              (list helm-fuzzy-matching-highlight-fn))))
+    (when helm-fuzzy-sort-fn
       (oset source :filtered-candidate-transformer
             (helm-aif (oref source :filtered-candidate-transformer)
                 (append (helm-mklist it)
-                        (list helm-default-fuzzy-sort-fn))
-              (list helm-default-fuzzy-sort-fn))))))
+                        (list helm-fuzzy-sort-fn))
+              (list helm-fuzzy-sort-fn))))))
 
 (defmethod helm-setup-user-source ((_source helm-source)))
 
 (defmethod helm--setup-source ((source helm-source-sync))
   (when (slot-value source :fuzzy-match)
     ;; FIXME should I allow appending other match fns to this ?
-    (oset source :match helm-default-fuzzy-match-fn))
+    (oset source :match helm-fuzzy-match-fn))
   (when (slot-value source :matchplugin)
     (oset source :match
           (helm-source-mp-get-search-or-match-fns source 'match))))
@@ -929,7 +975,7 @@ an eieio class."
                           (if (functionp it) (funcall it) it))))))))
   (when (slot-value source :fuzzy-match)
     ;; FIXME should I allow appending other search fns to this ?
-    (oset source :search `(,helm-default-fuzzy-search-fn)))
+    (oset source :search `(,helm-fuzzy-search-fn)))
   (when (slot-value source :matchplugin)
     (oset source :search (helm-source-mp-get-search-or-match-fns source 'search)))
   (let ((mtc (slot-value source :match)))
