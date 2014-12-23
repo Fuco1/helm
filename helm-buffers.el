@@ -24,6 +24,7 @@
 (require 'helm-grep)
 (require 'helm-plugin)
 (require 'helm-regexp)
+(require 'bookmark+)
 
 (declare-function ido-make-buffer-list "ido" (default))
 (declare-function ido-add-virtual-buffers-to-list "ido")
@@ -188,6 +189,13 @@ Only buffer names are fuzzy matched when this is enabled,
     "Show this buffer / C-u \\[helm-execute-persistent-action]: Kill this buffer")))
 
 (defvar helm-source-buffers-list nil)
+
+(defvar helm-source-bookmark-file-only
+  '((name . "File & Directory bookmark")
+    (candidates . bmkp-file-alist-only)
+    (action ("Go to bookmark" . (lambda (bookmark-name)
+                                  (message "%s" bookmark-name)
+                                  (bmkp-jump-1 (cons "" bookmark-name) 'switch-to-buffer nil))))))
 
 (defvar helm-source-buffer-not-found
   (helm-build-dummy-source
@@ -801,6 +809,7 @@ displayed with the `file-name-shadow' face if available."
           (helm-make-source "Buffers" 'helm-source-buffers)))
   (helm :sources '(helm-source-buffers-list
                    helm-source-ido-virtual-buffers
+                   helm-source-bookmark-file-only
                    helm-source-buffer-not-found)
         :buffer "*helm buffers*"
         :keymap helm-buffer-map
