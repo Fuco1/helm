@@ -148,6 +148,7 @@ NOTE: This will be slow on large org buffers."
                     (or (not tags) (progn (setq tags-at (org-get-tags-at)) (every (lambda (m) (org-match-any-p m tags-at)) tags)))
                     (or (not headline) (every (lambda (m) (string-match-p m (nth 4 header))) headline)))))
             (push (cons
+                   ;; TODO: ulozit samostatne header/tags/context, nakonci to spojit tak, aby to bolo zarovnane
                    (save-excursion
                      (org-back-to-heading t)
                      (let* ((lb (line-beginning-position))
@@ -168,7 +169,7 @@ NOTE: This will be slow on large org buffers."
                             "")))
                         ;; only display context if the match isn't in
                         ;; the headline itself and we made a search
-                        (if (or (not (and search match)) (and (< lb match) (< match le))) ""
+                        (if (or (not (and search match)) (and (<= lb match) (<= match le))) ""
                           (progn
                             (goto-char match)
                             (concat "    " (substring (thing-at-point 'line) 0 -1)))))))
