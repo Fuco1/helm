@@ -535,7 +535,7 @@ If specified, also remove filename extension EXT."
 Return nil on valid file name remote or not."
   (let* ((str (helm-basename fname))
          (split (split-string str ":"))
-         (meth (car (member (car split) (mapcar 'car tramp-methods))))) 
+         (meth (car (member (car split) (mapcar 'car tramp-methods)))))
     (when (and meth (<= (length split) 2))
       (cadr split))))
 

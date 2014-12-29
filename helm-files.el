@@ -2540,7 +2540,7 @@ Else return ACTIONS unmodified."
                      :path 'full
                      :directories nil
                      :match match
-                     :skip-subdirs ignore-dirs) 
+                     :skip-subdirs ignore-dirs)
            do (file-cache-add-file f)))
 
 (defun helm-ff-cache-add-file (_candidate)
@@ -2664,7 +2664,7 @@ Don't use it in your own code unless you know what you are doing.")
    (mode-line :initform helm-generic-file-mode-line-string)
    (action :initform (helm-actions-from-type-file))))
 
-(defvar helm-source-recentf nil 
+(defvar helm-source-recentf nil
   "See (info \"(emacs)File Conveniences\").
 Set `recentf-max-saved-items' to a bigger value if default is too small.")
 
@@ -2735,7 +2735,7 @@ and
               (helm-hg-root))
          (helm-hg-find-files-in-project))
         (t (let ((cur-dir (helm-current-directory)))
-             (if (or arg (gethash cur-dir helm--browse-project-cache)) 
+             (if (or arg (gethash cur-dir helm--browse-project-cache))
                  (helm-browse-project-find-files cur-dir (equal arg '(16)))
                (helm-find-files nil))))))
 
@@ -2902,7 +2902,7 @@ utility mdfind.")
 
 (defun helm-findutils-transformer (candidates _source)
   (cl-loop for i in candidates
-           for type = (car (file-attributes i))    
+           for type = (car (file-attributes i))
         for abs = (expand-file-name i helm-default-directory)
         for disp = (if (and helm-ff-transformer-show-only-basename
                             (not (string-match "[.]\\{1,2\\}$" i)))

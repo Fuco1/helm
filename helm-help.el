@@ -232,7 +232,7 @@ of buffer, it is interesting to narrow down to one directory for example, subseq
 entered after a space will match on buffer-name only.
 Note that negation is not supported for matching on buffer-file-name.
 You can't cumulate both major-mode matching AND directory matching, choose one or the other.
- 
+
 **** Fuzzy matching:
 
 Note that if `helm-buffers-fuzzy-matching' is non--nil you will have
@@ -570,7 +570,7 @@ short delay (less than 5s actually) among other things,
 so I strongly advice hitting `C-!' (i.e suspend process)
 before entering anything in pattern, and hit again `C-!' when
 your regexp is ready to send to remote process, even if helm is handling
-this by delaying each process at 5s. 
+this by delaying each process at 5s.
 Or even better don't use tramp at all and mount your remote file system on SSHFS.
 
 \n** Specific commands for Helm Grep:\n
