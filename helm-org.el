@@ -114,6 +114,11 @@ NOTE: This will be slow on large org buffers."
   (org-show-context)
   (org-show-entry))
 
+(defun helm-org-show-top-heading (point)
+  (switch-to-buffer helm-current-buffer)
+  (goto-char point)
+  (my-org-show-parent-context))
+
 (defun helm-org-search-get-candidates-in-file ()
   ;; TODO: add support for multiple buffers
   (with-current-buffer helm-current-buffer
@@ -163,6 +168,9 @@ NOTE: This will be slow on large org buffers."
                          (concat
                           heading " "
                           ;; add all tags, including inherited
+                          ;; TODO: nespravne zobrazuje tagy u
+                          ;; vysledku, kde je 2x rovnaky header: vid
+                          ;; napr TBBT v me.org
                           (if (or tags-at (setq tags-at (org-get-tags-at)))
                               (propertize (concat ":" (mapconcat 'identity tags-at ":") ":")
                                           'face (get-text-property 0 'face heading))
@@ -200,6 +208,7 @@ NOTE: This will be slow on large org buffers."
     (requires-pattern . 2)
     (mode-line . "Press TAB to select action.")
     (action ("Go to line" . helm-org-goto-char)
+            ("Show top parent" . helm-org-show-top-heading)
             ("Refile to this heading" . helm-org-heading-refile)
             ("Insert link to this heading"
              . helm-org-insert-link-to-heading-at-marker))))
