@@ -127,7 +127,7 @@ NOTE: This will be slow on large org buffers."
       (outline-next-heading)
       (let ((words (split-string helm-pattern))
             (match t)
-            todo tags search headline re tags-at)
+            todo tags search headline re)
         (mapc
          (lambda (word)
            (cond
@@ -138,51 +138,49 @@ NOTE: This will be slow on large org buffers."
          words)
         (setq search (nreverse search))
         (while match
-          (when (and
-                 ;; sideffect search!
-                 (or (not search) (setq match (re-search-forward (car search) nil t)))
-                 (or (not (> (length search) 1))
-                     (let ((limit (save-excursion (or (outline-next-heading) (point-max)))))
-                       (every (lambda (p)
-                                (org-back-to-heading t)
-                                (re-search-forward p limit t))
-                              (cdr search))))
-                 (let ((header (when (or todo headline) (org-heading-components))))
-                   (and
-                    (or (not todo) (every (lambda (m) (string-match-p m (or (nth 2 header) ""))) todo))
-                    (or (not tags) (progn (setq tags-at (org-get-tags-at)) (every (lambda (m) (org-match-any-p m tags-at)) tags)))
-                    (or (not headline) (every (lambda (m) (string-match-p m (nth 4 header))) headline)))))
-            (push (cons
-                   ;; TODO: ulozit samostatne header/tags/context, nakonci to spojit tak, aby to bolo zarovnane
-                   (save-excursion
-                     (org-back-to-heading t)
-                     (let* ((lb (line-beginning-position))
-                            (le (line-end-position))
-                            (heading (progn
-                                       (font-lock-fontify-region lb le)
-                                       (looking-at org-todo-line-tags-regexp)
-                                       (buffer-substring lb (or (match-beginning 4) le)))))
-                       (concat
-                        (replace-regexp-in-string
-                         "[[:space:]]+" " "
+          (let (tags-at)
+            (when (and
+                   ;; sideffect search!
+                   (or (not search) (setq match (re-search-forward (car search) nil t)))
+                   (or (not (> (length search) 1))
+                       (let ((limit (save-excursion (or (outline-next-heading) (point-max)))))
+                         (every (lambda (p)
+                                  (org-back-to-heading t)
+                                  (re-search-forward p limit t))
+                                (cdr search))))
+                   (let ((header (when (or todo headline) (org-heading-components))))
+                     (and
+                      (or (not todo) (every (lambda (m) (string-match-p m (or (nth 2 header) ""))) todo))
+                      (or (not tags) (progn (setq tags-at (org-get-tags-at)) (every (lambda (m) (org-match-any-p m tags-at)) tags)))
+                      (or (not headline) (every (lambda (m) (string-match-p m (nth 4 header))) headline)))))
+              (push (cons
+                     ;; TODO: ulozit samostatne header/tags/context, nakonci to spojit tak, aby to bolo zarovnane
+                     (save-excursion
+                       (org-back-to-heading t)
+                       (let* ((lb (line-beginning-position))
+                              (le (line-end-position))
+                              (heading (progn
+                                         (font-lock-fontify-region lb le)
+                                         (looking-at org-todo-line-tags-regexp)
+                                         (buffer-substring lb (or (match-beginning 4) le)))))
                          (concat
-                          heading " "
-                          ;; add all tags, including inherited
-                          ;; TODO: nespravne zobrazuje tagy u
-                          ;; vysledku, kde je 2x rovnaky header: vid
-                          ;; napr TBBT v me.org
-                          (if (or tags-at (setq tags-at (org-get-tags-at)))
-                              (propertize (concat ":" (mapconcat 'identity tags-at ":") ":")
-                                          'face (get-text-property 0 'face heading))
-                            "")))
-                        ;; only display context if the match isn't in
-                        ;; the headline itself and we made a search
-                        (if (or (not (and search match)) (and (<= lb match) (<= match le))) ""
-                          (progn
-                            (goto-char match)
-                            (concat "    " (substring (thing-at-point 'line) 0 -1)))))))
-                   (point))
-                  re))
+                          (replace-regexp-in-string
+                           "[[:space:]]+" " "
+                           (concat
+                            heading " "
+                            ;; add all tags, including inherited
+                            (if (or tags-at (setq tags-at (org-get-tags-at)))
+                                (propertize (concat ":" (mapconcat 'identity tags-at ":") ":")
+                                            'face (get-text-property 0 'face heading))
+                              "")))
+                          ;; only display context if the match isn't in
+                          ;; the headline itself and we made a search
+                          (if (or (not (and search match)) (and (<= lb match) (<= match le))) ""
+                            (progn
+                              (goto-char match)
+                              (concat "    " (substring (thing-at-point 'line) 0 -1)))))))
+                     (point))
+                    re)))
           (setq match (and match (outline-next-heading))))
         (nreverse re)))))
 
