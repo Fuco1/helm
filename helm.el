@@ -943,7 +943,7 @@ not `exit-minibuffer' or unwanted functions."
   "Return a list of all single elements of sublists in SEQ."
   (let (result)
     (cl-labels ((flatten (seq)
-                  (cl-loop 
+                  (cl-loop
                         for elm in seq
                         if (and (or elm
                                     (null omit-nulls))
@@ -1079,7 +1079,7 @@ if SRC is omitted, use current source."
   "Set the value of ATTRIBUTE-NAME of source SRC to VALUE.
 If ATTRIBUTE-NAME doesn't exists in source it is created with value VALUE.
 If ALTER-TYPE is non--nil alter the value of ATTRIBUTE-NAME in `helm-attributes'
-if it exists. 
+if it exists.
 If SRC is omitted, use current source.
 If operation succeed, return value, otherwise nil."
   (let ((from-type (helm-get-attribute-from-source-type attribute-name src))
@@ -1704,7 +1704,7 @@ to 10 as session local variable.
             (prog1
                 (message "Aborting an helm session running in background")
               ;; `helm-alive-p' will be reset in unwind-protect forms.
-              (helm-keyboard-quit)))) 
+              (helm-keyboard-quit))))
       (if (keywordp (car plist))
           ;; Parse `plist' and move not regular `helm-argument-keys'
           ;; to `helm--local-variables', then calling helm on itself
@@ -1744,7 +1744,7 @@ in source.
                      :buffer \"toto\"
                      :candidate-number-limit 4))
   ==> ((helm-candidate-number-limit . 4))."
-  
+
   (cl-loop for (key value) on keys by #'cddr
            for symname = (substring (symbol-name key) 1)
            for sym = (intern (if (string-match "^helm-" symname)
@@ -2223,8 +2223,8 @@ It is intended to use this only in `helm-initial-setup'."
     (get-buffer helm-buffer)))
 
 (defun helm-read-pattern-maybe (any-prompt any-input
-                                any-preselect any-resume any-keymap
-                                any-default any-history)
+                                           any-preselect any-resume any-keymap
+                                           any-default any-history)
   "Read pattern with prompt ANY-PROMPT and initial input ANY-INPUT.
 For ANY-PRESELECT ANY-RESUME ANY-KEYMAP ANY-DEFAULT ANY-HISTORY, See `helm'."
   (if (and (helm-resume-p any-resume)
@@ -2237,7 +2237,7 @@ For ANY-PRESELECT ANY-RESUME ANY-KEYMAP ANY-DEFAULT ANY-HISTORY, See `helm'."
     (let* ((src        (helm-get-current-source))
            (src-keymap (assoc-default 'keymap src))
            (hist       (or (and any-history (symbolp any-history) any-history)
-                           ;; Needed for resuming. 
+                           ;; Needed for resuming.
                            (assoc-default 'history src)))
            (timer nil)
            blink-matching-paren
@@ -2296,23 +2296,25 @@ For ANY-PRESELECT ANY-RESUME ANY-KEYMAP ANY-DEFAULT ANY-HISTORY, See `helm'."
                             (with-helm-current-buffer
                               (thing-at-point 'symbol)))))
                (unwind-protect
-                    (minibuffer-with-setup-hook
-                        #'(lambda ()
-                            (set-input-method (with-current-buffer helm-current-buffer current-input-method))
-                            (setq timer (run-with-idle-timer
-                                         (max helm-input-idle-delay 0.001) 'repeat
-                                         #'(lambda ()
-                                             ;; Stop updating when in persistent action
-                                             ;; or when `helm-suspend-update-flag' is
-                                             ;; non--nil.
-                                             (unless (or helm-in-persistent-action
-                                                         helm-suspend-update-flag)
-                                               (save-selected-window
-                                                 (helm-check-minibuffer-input)
-                                                 (helm-print-error-messages)))))))
-                      (read-from-minibuffer (or any-prompt "pattern: ")
-                                            any-input helm-map
-                                            nil hist tap t))
+                   (minibuffer-with-setup-hook
+                       #'(lambda ()
+                           (when (--any? (member it helm-sources) '(helm-org-source-search
+                                                                    helm-source-occur))
+                             (set-input-method (with-current-buffer helm-current-buffer current-input-method)))
+                           (setq timer (run-with-idle-timer
+                                        (max helm-input-idle-delay 0.001) 'repeat
+                                        #'(lambda ()
+                                            ;; Stop updating when in persistent action
+                                            ;; or when `helm-suspend-update-flag' is
+                                            ;; non--nil.
+                                            (unless (or helm-in-persistent-action
+                                                        helm-suspend-update-flag)
+                                              (save-selected-window
+                                                (helm-check-minibuffer-input)
+                                                (helm-print-error-messages)))))))
+                     (read-from-minibuffer (or any-prompt "pattern: ")
+                                           any-input helm-map
+                                           nil hist tap t))
                  (when timer (cancel-timer timer) (setq timer nil)))))))))
 
 (defun helm-exit-or-quit-maybe ()
@@ -2535,7 +2537,7 @@ Helm plug-ins are realized by this function."
         inhibit-quit)
     `(with-local-quit
        (catch ',catch-sym
-	 (let ((throw-on-input ',catch-sym))
+     (let ((throw-on-input ',catch-sym))
            ,@body)))))
 
 (defun helm-get-cached-candidates (source)
@@ -2543,7 +2545,7 @@ Helm plug-ins are realized by this function."
 Cache the candidates if there is not yet a cached value."
   (let* ((name (assoc-default 'name source))
          (candidate-cache (gethash name helm-candidate-cache)))
-    (helm-aif candidate-cache 
+    (helm-aif candidate-cache
         (prog1 it (helm-log "Use cached candidates"))
       (helm-log "No cached candidates, calculate candidates")
       (let ((candidates (helm-get-candidates source)))
@@ -2916,7 +2918,7 @@ and `helm-pattern'."
                   (let ((target (helm-candidate-get-display candidate)))
                     (when (funcall match
                                    (if match-part-fn
-                                       (funcall match-part-fn target) target)) 
+                                       (funcall match-part-fn target) target))
                       (helm--accumulate-candidates
                        candidate newmatches
                        helm-match-hash item-count limit source)))))
@@ -4207,7 +4209,7 @@ To customize `helm-candidates-in-buffer' behavior, use `search',
                                           limit search-from-end
                                           start-point match-part-fn source)
   (let (buffer-read-only
-        matches 
+        matches
         newmatches
         (case-fold-search (helm-set-case-fold-search))
         (stopper (if search-from-end #'bobp #'eobp)))
@@ -4532,7 +4534,7 @@ In this case you have to add this new attribute to your source.
 When `helm-full-frame' or SPLIT-ONEWINDOW are non--nil,
 and `helm-buffer' is displayed in only one window,
 the helm window is splitted to display
-`helm-select-persistent-action-window' in other window 
+`helm-select-persistent-action-window' in other window
 and keep its visibility."
   (interactive)
   (helm-log "executing persistent-action")
