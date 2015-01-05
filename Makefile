@@ -32,7 +32,7 @@ EVAL := $(EMACS) --eval
 PKGDIR := .
 
 # Additional emacs loadpath
-LOADPATH	:= -L .
+LOADPATH	:= -L . -L /home/matus/.emacs.d/dev/dash.el -L /home/matus/.emacs.d/elpa/bookmark+-20141028.2319/
 
 # Files to compile
 EL			:= $(wildcard helm*.el)

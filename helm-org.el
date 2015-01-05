@@ -19,6 +19,7 @@
 (require 'cl-lib)
 (require 'helm)
 (require 'org)
+(require 'dash)
 
 (defgroup helm-org nil
   "Org related functions for helm."
