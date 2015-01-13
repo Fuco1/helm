@@ -813,11 +813,11 @@ like `re-search-forward', see below documentation of :search slot.")
 ;;; Internal Builder functions.
 ;;
 ;;
-(defun helm--create-source (object class)
-  "[INTERNAL] Build a helm source from a CLASS OBJECT."
+(defun helm--create-source (object)
+  "[INTERNAL] Build a helm source from OBJECT.
+Where OBJECT is an instance of an eieio class."
   (cl-loop for s in (object-slots object)
-           for slot = (class-slot-initarg class s)
-           for slot-val = (slot-value object slot)
+           for slot-val = (slot-value object s)
            when slot-val
            collect (cons s (unless (eq t slot-val) slot-val))))
 
@@ -832,13 +832,13 @@ Arguments ARGS are keyword value pairs as defined in CLASS."
     (oset source :name name)
     (helm--setup-source source)
     (helm-setup-user-source source)
-    (helm--create-source source (object-class source))))
+    (helm--create-source source)))
 
 (defun helm-make-type (class &rest args)
   (let ((source (apply #'make-instance class args)))
     (oset source :name nil)
     (helm--setup-source source)
-    (helm--create-source source (object-class source))))
+    (helm--create-source source)))
 
 (defun helm-source-mp-get-search-or-match-fns (source method)
   (require 'helm-match-plugin)
