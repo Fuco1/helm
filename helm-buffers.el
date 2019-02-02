@@ -24,7 +24,6 @@
 (require 'helm-grep)
 (require 'helm-plugin)
 (require 'helm-regexp)
-(require 'bookmark+)
 
 (declare-function ido-make-buffer-list "ido" (default))
 (declare-function ido-add-virtual-buffers-to-list "ido")
