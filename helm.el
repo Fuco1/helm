@@ -2401,7 +2401,7 @@ If no map is found in current source do nothing (keep previous map)."
         ;; to not overhide other minor-mode-map's.
         (if (fboundp 'set-transient-map)
             (set-transient-map it)
-            (set-temporary-overlay-map it)))))
+          (set-temporary-overlay-map it)))))
 
 
 ;; Core: clean up

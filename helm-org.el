@@ -206,6 +206,7 @@ NOTE: This will be slow on large org buffers."
     (no-matchplugin)
     (requires-pattern . 2)
     (mode-line . "Press TAB to select action.")
+    ;; TODO: add action to clock in the current header
     (action ("Go to line" . helm-org-goto-char)
             ("Show top parent" . helm-org-show-top-heading)
             ("Refile to this heading" . helm-org-heading-refile)
