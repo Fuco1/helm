@@ -19,6 +19,7 @@
 (require 'cl-lib)
 (require 'helm)
 (require 'org)
+(require 'org-archive)
 (require 'dash)
 
 (defgroup helm-org nil
