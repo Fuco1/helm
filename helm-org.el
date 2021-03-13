@@ -109,11 +109,12 @@ NOTE: This will be slow on large org buffers."
 ;;
 ;;
 
-(defun helm-org-goto-char (point)
-  (switch-to-buffer helm-current-buffer)
-  (goto-char point)
-  (org-show-context)
-  (org-show-entry))
+(defun helm-org-goto-char (candidate)
+  (-let (((point buffer) candidate))
+    (switch-to-buffer buffer)
+    (goto-char point)
+    (org-show-context)
+    (org-show-entry)))
 
 (defun helm-org-show-top-heading (point)
   (switch-to-buffer helm-current-buffer)
@@ -121,8 +122,18 @@ NOTE: This will be slow on large org buffers."
   (my-org-show-parent-context))
 
 (defun helm-org-search-get-candidates-in-file ()
+  (let* ((archive-file (with-current-buffer helm-current-buffer
+                         (org-extract-archive-file
+                          (org-get-local-archive-location))))
+         (buffers (list
+                   helm-current-buffer
+                   (or (find-buffer-visiting archive-file)
+                       (find-file-noselect archive-file)))))
+    (-mapcat #'helm-org-search--get-candidates-in-file buffers)))
+
+(defun helm-org-search--get-candidates-in-file (buffer)
   ;; TODO: add support for multiple buffers
-  (with-current-buffer helm-current-buffer
+  (with-current-buffer buffer
     (save-excursion
       (goto-char (point-min))
       (outline-next-heading)
@@ -168,7 +179,8 @@ NOTE: This will be slow on large org buffers."
                           (replace-regexp-in-string
                            "[[:space:]]+" " "
                            (concat
-                            heading " "
+                            heading
+                            (if (equal buffer helm-current-buffer) " " " [ARCHIVED] ")
                             ;; add all tags, including inherited
                             (if (or tags-at (setq tags-at (org-get-tags-at)))
                                 (propertize (concat ":" (mapconcat 'identity tags-at ":") ":")
@@ -180,7 +192,7 @@ NOTE: This will be slow on large org buffers."
                             (progn
                               (goto-char match)
                               (concat "    " (substring (thing-at-point 'line) 0 -1)))))))
-                     (point))
+                     (list (point) buffer))
                     re)))
           (setq match (and match (outline-next-heading))))
         (nreverse re)))))
