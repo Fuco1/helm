@@ -126,10 +126,12 @@ NOTE: This will be slow on large org buffers."
   (let* ((archive-file (with-current-buffer helm-current-buffer
                          (org-extract-archive-file
                           (org-get-local-archive-location))))
-         (buffers (list
-                   helm-current-buffer
-                   (or (find-buffer-visiting archive-file)
-                       (find-file-noselect archive-file)))))
+         (buffers (-non-nil
+                   (list
+                    helm-current-buffer
+                    (and (f-exists-p archive-file)
+                         (or (find-buffer-visiting archive-file)
+                             (find-file-noselect archive-file)))))))
     (-mapcat #'helm-org-search--get-candidates-in-file buffers)))
 
 (defun helm-org-search--get-candidates-in-file (buffer)
