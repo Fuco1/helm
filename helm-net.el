@@ -427,7 +427,7 @@ Return an alist with elements like (data . number_results)."
           (when (or (string-match "</table>\\(\n<div.*?</div>\\)?\n<p>" result)
                     ;; otherwise just find the first paragraph
                     (string-match "<p>" result))
-            ;; remove cruft and do a simple formatting 
+            ;; remove cruft and do a simple formatting
             (replace-regexp-in-string
              "Cite error: .*" ""
              (replace-regexp-in-string
@@ -478,7 +478,6 @@ Return an alist with elements like (data . number_results)."
     (,browse-url-mozilla-program . browse-url-mozilla)
     (,browse-url-galeon-program . browse-url-galeon)
     (,browse-url-netscape-program . browse-url-netscape)
-    (,browse-url-mosaic-program . browse-url-mosaic)
     (,browse-url-xterm-program . browse-url-text-xterm)
     ("emacs" . eww-browse-url))
   "*Alist of \(executable . function\) to try to find a suitable url browser.")
