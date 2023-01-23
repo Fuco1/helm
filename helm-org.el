@@ -21,6 +21,7 @@
 (require 'org)
 (require 'org-archive)
 (require 'dash)
+(require 'f)
 
 (defgroup helm-org nil
   "Org related functions for helm."
@@ -124,8 +125,7 @@ NOTE: This will be slow on large org buffers."
 
 (defun helm-org-search-get-candidates-in-file ()
   (let* ((archive-file (with-current-buffer helm-current-buffer
-                         (org-extract-archive-file
-                          (org-get-local-archive-location))))
+                         (my-org-archive-file)))
          (buffers (-non-nil
                    (list
                     helm-current-buffer
@@ -176,6 +176,7 @@ NOTE: This will be slow on large org buffers."
                               (le (line-end-position))
                               (heading (progn
                                          (font-lock-fontify-region lb le)
+                                         ;; called for side-effect to fill match-beginning
                                          (looking-at org-todo-line-tags-regexp)
                                          (buffer-substring lb (or (match-beginning 4) le)))))
                          (concat
