@@ -19,6 +19,7 @@
 (require 'cl-lib)
 (require 'helm)
 (require 'org)
+(require 'orgba)
 (require 'org-archive)
 (require 'dash)
 (require 'f)
@@ -142,13 +143,18 @@ NOTE: This will be slow on large org buffers."
       (outline-next-heading)
       (let ((words (split-string helm-pattern))
             (match t)
-            todo tags search headline re)
+            todo tags search headline re parent ancestor)
         (mapc
          (lambda (word)
            (cond
             ((and (> (length word) 1) (= ?! (aref word 0))) (push (substring word 1) todo))
             ((and (> (length word) 1) (= ?: (aref word 0))) (push (substring word 1) tags))
             ((and (> (length word) 1) (= ?* (aref word 0))) (push (substring word 1) headline))
+            ((and (> (length word) 2)
+                  (= ?> (aref word 0))
+                  (= ?> (aref word 1)))
+             (push (substring word 2) ancestor))
+            ((and (> (length word) 1) (= ?> (aref word 0))) (push (substring word 1) parent))
             (t (push word search))))
          words)
         (setq search (nreverse search))
@@ -167,7 +173,25 @@ NOTE: This will be slow on large org buffers."
                      (and
                       (or (not todo) (every (lambda (m) (string-match-p m (or (nth 2 header) ""))) todo))
                       (or (not tags) (progn (setq tags-at (org-get-tags-at)) (every (lambda (m) (org-match-any-p m tags-at)) tags)))
-                      (or (not headline) (every (lambda (m) (string-match-p m (nth 4 header))) headline)))))
+                      (or (not headline) (cl-every (lambda (m) (string-match-p m (nth 4 header))) headline))))
+                   (or (not parent)
+                       (save-excursion
+                         (org-back-to-heading t)
+                         (and (org-up-heading-safe)
+                              (cl-some
+                               (lambda (p)
+                                 (string-match-p
+                                  p
+                                  (org-get-heading :no-tags :no-todo :no-priority :no-comment)))
+                               parent))))
+                   (or (not ancestor)
+                       (let ((headings (orgba-get-parent-headings)))
+                         (cl-every
+                          (lambda (a)
+                            (cl-some (lambda (heading)
+                                       (string-match-p a heading))
+                                     headings))
+                          ancestor))))
               (push (cons
                      ;; TODO: ulozit samostatne header/tags/context, nakonci to spojit tak, aby to bolo zarovnane
                      (save-excursion
