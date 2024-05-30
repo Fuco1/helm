@@ -188,7 +188,9 @@ NOTE: This will be slow on large org buffers."
                             ;; add all tags, including inherited
                             (if (or tags-at (setq tags-at (org-get-tags-at)))
                                 (propertize (concat ":" (mapconcat 'identity tags-at ":") ":")
-                                            'face (get-text-property 0 'face heading))
+                                            'face (get-text-property
+                                                   (string-match-p "[^*]" heading)
+                                                    'face heading))
                               "")))
                           ;; only display context if the match isn't in
                           ;; the headline itself and we made a search
